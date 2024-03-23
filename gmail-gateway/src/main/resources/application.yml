@@ -1,0 +1,68 @@
+spring:
+  cloud:
+    sentinel:
+      transport:
+         dashboard: localhost:8080
+         port: 8720
+        # client-ip: 172.22.48.1
+        # clientIp: 123.112.17.201
+        # client-ip: 123.249.31.68
+      eager: true
+    nacos:
+      discovery:
+        server-addr: 123.249.31.68:8848
+      config:
+        server-addr: 123.249.31.68:8848
+        file-extension: yaml
+        namespace: public
+        extension-configs[0]:
+          data-id: server-routes
+          group: dev
+          refresh: true
+    gateway:
+       discovery:
+         locator:
+           enabled: true # 启用探测器，让gateway可以发现nacos中的微服务
+       routes:
+         # 路由ID，没有固定规则但要求唯一，建议配合服务名
+          - id: test-coupon
+            # 匹配后提供服务的路由地址 (即目标服务地址)
+            uri: lb://gmail-coupon
+            # 断言会接收一个输入参数，返回一个布尔值结果
+            predicates:
+              # 路径相匹配的进行路由
+              - Path=/coupon/**
+            filters:
+              - name: RequestRateLimiter
+                args:
+                  # 每秒处理多少个平均请求数
+                  redis-rate-limiter.replenishRate: 10000
+                  # 令允许在一秒钟内完成的最大请求数
+                  redis-rate-limiter.burstCapacity: 30000
+                  # 获取 Bean 对象，@Bean的标识，默认bean名称与方法名一样。
+                  key-resolver: "#{@uriKeyResolver}"
+#              - StripPrefix=1 #转发前过掉第一个路径
+#              - name: Hystrix
+#                args:
+#                  name: fallback
+#                  fallbackuri: forward:/downgragde
+          - id: test_hello
+            uri: http://www.baidu.com
+            predicates:
+             - Path=/
+#        - id: coupon_route
+#          uri: lb://gulimall-coupon
+#          predicates:
+#            - Path=/api/coupon/**
+#          filters:
+#            - RewritePath=/api/(?<segment>/?.*),/$\{segment}
+
+
+#暴露所有端点
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+server:
+  port: 9500

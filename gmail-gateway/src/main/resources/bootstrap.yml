@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: gmail-gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 123.249.31.68:8848
+      config:
+        server-addr: 123.249.31.68:8848
+        file-extension: yaml
+        namespace: public
+        #extension-configs[0]:
+        ext-config[0]:
+          data-id: server-routes
+          group: dev
+          refresh: true
